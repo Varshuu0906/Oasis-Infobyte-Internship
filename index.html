@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Voice Assistant</title>
+<style>
+body{font-family:Arial;text-align:center;color:white;
+background:linear-gradient(135deg,#667eea,#764ba2);
+padding:50px 10px}
+.box{max-width:400px;margin:auto;padding:25px;
+background:#ffffff25;border-radius:20px}
+button{padding:12px;margin:8px;border:0;
+border-radius:20px;cursor:pointer}
+#status{color:#fff2a8}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>🤖 My Voice Assistant</h1>
+<p>Speak to your personal assistant!</p>
+<button onclick="start()">🎤 Start Listening</button>
+<button onclick="stop()">⏹ Stop</button>
+<p id="status">Ready to listen!</p>
+<p id="out">Your conversation appears here.</p>
+</div>
+
+<script>
+let r,active=false;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+function say(t){
+out.innerText="Assistant: "+t;
+speechSynthesis.cancel();
+let s=new SpeechSynthesisUtterance(t);
+s.lang="en-IN";
+speechSynthesis.speak(s);
+}
+
+function start(){
+if(!SR){say("Please use Google Chrome.");return}
+if(active)return;
+r=new SR();r.lang="en-IN";r.continuous=true;
+active=true;
+r.onstart=()=>status.innerText="Listening...";
+r.onresult=e=>{
+let c=e.results[e.results.length-1][0].transcript.toLowerCase();
+out.innerText="You said: "+c;
+if(c.includes("hello")||c.includes("hi"))say("Hello! How can I help?");
+else if(c.includes("time"))say("The time is "+new Date().toLocaleTimeString());
+else if(c.includes("date")||c.includes("today"))say("Today's date is "+new Date().toLocaleDateString());
+else if(c.includes("search")||c.includes("google")){
+let q=c.replace(/search|google/gi,"").trim();
+if(q){say("Searching Google for "+q);window.open("https://www.google.com/search?q="+encodeURIComponent(q),"_blank")}
+else say("What would you like to search?");
+}
+else if(c.includes("bye")||c.includes("stop assistant")){say("Goodbye!");stop()}
+else say("Sorry, please repeat.");
+};
+r.onerror=e=>status.innerText="Microphone: "+e.error;
+r.onend=()=>{if(active)try{r.start()}catch(e){}};
+try{r.start()}catch(e){active=false}
+}
+
+function stop(){
+active=false;
+if(r)r.stop();
+status.innerText="Assistant stopped.";
+}
+</script>
+</body>
+</html>
